@@ -12,10 +12,11 @@ use warnings;
 use Carp;
 use File::Path;
 use File::Copy;
-use File::Spec::Functions qw(catdir catfile devnull);
+use File::Spec::Functions qw(catdir catfile devnull path);
 
 our $VERSION = "0.8";
 
+my %_CMD_LOC_FOR = ();
 =pod
 
 =head1 NAME
@@ -316,11 +317,12 @@ sub _walk_tree {
             }
 
             while(my $entry = readdir(DIR)) {
+                next if $entry eq '.' || $entry eq '..';
                 my $full_path = catfile($dir, $entry);
                 if(-f $full_path) {
                     $file_handler->($full_path);
                 }
-                elsif($entry ne '.' && $entry ne '..' && -d $full_path) {
+                elsif(d $full_path) {
                     push @dirs, $full_path;
                 }
             }
@@ -336,7 +338,49 @@ sub _walk_tree {
 sub _search_in_archive {
     my ($self, $do_extract, $base_dir, $ctx, $file) = @_;
 
-    if ($file =~ /\.zip$|\.7z$/) {
+    if ($file =~ /\.zip$/) {
+        if ($self->_is_cmd_avail('7za')) {
+            $self->_peek_archive(
+                $do_extract,
+                $base_dir,
+                $ctx,
+                $file,
+                '7za l',
+                '(-+)\s+(-+)\s+(-+)\s+(-+)\s+(-+)',
+                '---+',
+                '',
+                sub {
+                    my ($entry, undef, undef, undef, undef, $file_pos) = @_;
+                    my (undef, undef, $a, undef) = split(' ', $entry, 4);
+                    return undef if $a =~ /^D/;
+                    if ($file_pos && $file_pos < length($entry)) {
+                       my $f = substr($entry, $file_pos);
+                       return $f;
+                    }
+                    return undef;
+                }
+            ); 
+        }
+        else {
+            $self->_peek_archive(
+                $do_extract,
+                $base_dir,
+                $ctx,
+                $file,
+                "unzip -l",
+                "--------",
+                "--------",
+                '',
+                sub {
+                    my ($entry) = @_;
+                    my (undef, undef, undef, $f) = split(' ', $entry, 4);
+                    return $f;
+                }
+            ); 
+
+        }
+    }
+    elsif ($file =~ /\.7z$/) {
         $self->_peek_archive(
             $do_extract,
             $base_dir,
@@ -422,6 +466,9 @@ sub _search_in_archive {
             }
         ); 
     }
+    else {
+        carp("Archive file $file is not supported\n");
+    }
 }
 
 sub _peek_archive {
@@ -505,7 +552,31 @@ sub _extract_archive_file {
 
     mkpath($extract_dir) unless -d $extract_dir;
     my $cmd = "";
-    if ($parent =~ /\.zip$|\.7z$/) {
+    if ($parent =~ /\.zip$/) {
+        if ($self->_is_cmd_avail('7za')) {
+            # specify dummy password to make 7za fail fast
+            # instead of waiting for user input password when
+            # the zip file is password-protected
+            $cmd = $self->_build_cmd(
+                '7za x -y -pxxx',
+                $extract_dir,
+                $parent,
+                $file
+            );
+        }
+        else {
+            # specify dummy password to make unzip fail fast
+            # instead of waiting for user input password when
+            # the zip file is password-protected
+            $cmd = $self->_build_cmd(
+                'unzip -P xxx -o',
+                $extract_dir,
+                $parent,
+                $file
+            );
+        }
+    }
+    elsif ($parent =~ /\.zip$|\.7z$/) {
         # specify dummy password to make 7za fail fast
         # instead of waiting for user input password when
         # the zip file is password-protected
@@ -566,17 +637,49 @@ sub _build_cmd {
         $chdir_cmd = q[cd /d];
     }
     return sprintf(
-        "%s %s%s%s && %s %s%s%s %s",
+        "%s %s%s%s && %s %s %s",
         $chdir_cmd,
         $quote,
         $dir,
         $quote,
         $extract_cmd,
-        $quote,
-        $parent,
-        $quote,
+        $self->_escape($parent),
         $self->_escape($file)
     );
+}
+
+sub _is_cmd_avail {
+    my ($self, $cmd) = @_;
+
+    if (!exists $_CMD_LOC_FOR{$cmd}) {
+        my @path = path();
+        foreach my $p (@path) {
+            my $fp = catfile($p, $cmd);
+            if (-f $fp) {
+                $_CMD_LOC_FOR{$cmd} = $fp;
+                return 1;
+            }
+            else {
+                if($^O eq 'MSWin32') {
+                    # try to append .exe to the name
+                    my $fp_win = $fp . ".exe";
+                    if (-f $fp_win) {
+                        $_CMD_LOC_FOR{$cmd} = $fp_win;
+                        return 1;
+                    }
+                    # try to append .bat to the name
+                    $fp_win = $fp . ".bat";
+                    if (-f $fp_win) {
+                        $_CMD_LOC_FOR{$cmd} = $fp_win;
+                        return 1;
+                    }
+                }
+            }
+        }
+        # executable not found, won't try again
+        $_CMD_LOC_FOR{$cmd} = "";
+    }
+    return $_CMD_LOC_FOR{$cmd} ? 1 : 0;
 }
 
 sub _escape {
