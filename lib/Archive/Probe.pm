@@ -4,7 +4,8 @@ package Archive::Probe;
 # pattern in a set of archive files 
 # Pre-requisite: unrar, 7za should be in PATH
 #                Get free unrar from: http://www.rarlab.com/rar_add.htm
-# Author:          JustinZhang <fgz@qad.com>
+#                Get free 7za from: http://www.7-zip.org
+# Author:          JustinZhang <fgz@cpan.org>
 # Creation Date:   2013-05-06
 #
 use strict;
@@ -14,9 +15,10 @@ use File::Path;
 use File::Copy;
 use File::Spec::Functions qw(catdir catfile devnull path);
 
-our $VERSION = "0.8";
+our $VERSION = "0.81";
 
 my %_CMD_LOC_FOR = ();
+
 =pod
 
 =head1 NAME
@@ -58,7 +60,7 @@ http://www.rarlab.com/rar_add.htm.
 
 =head1 METHODS
 
-=head2 $probe = Archive::Probe->new()
+=head2 constructor new()
 
 Creates a new C<Archive::Probe> object.
 
@@ -71,7 +73,7 @@ sub new {
     return bless {}, $class;
 }
 
-=head2 $probe->add_pattern(regex, coderef)
+=head2 add_pattern(regex, coderef)
 
 Register a file pattern to search with in the archive file(s) and the
 callback code to handle the matched files. The callback will be passed
@@ -85,8 +87,9 @@ This is the pattern of the matched files.
 
 =item $file_ref
 
-This is the array reference to the files matched the pattern. The existence
-of the files is controlled by the second argument to the C<search()> method.
+This is the array reference to the files matched the pattern. The files
+are extracted, hence exist, only if the second argument of the
+C<search()> method evaluates to true.
 
 =back
 
@@ -108,7 +111,7 @@ sub add_pattern {
     $pattern_map->{$pattern} = [$callback];
 }
 
-=head2 $probe->search(base_dir, extract_matched)
+=head2 search(base_dir, extract_matched)
 
 Search registered files under 'base_dir' and invoke the callback.
 It requires two arguments:
@@ -122,7 +125,8 @@ This is the directory containing the archive file(s).
 =item $extract_matched
 
 Extract or copy the matched files to the working directory
-if this parameter evaluate to true.
+if this parameter evaluates to true. This is useful when you need search
+files based on their content not just by name.
 
 =back
 
@@ -140,7 +144,7 @@ sub search {
         $self->_match($do_extract, $base_dir, $ctx, $file);
         if ($self->_is_archive_file($file)) {
             my $ctx = $file . '__';
-            $ctx = $self->strip_dir($base_dir, $ctx);
+            $ctx = $self->_strip_dir($base_dir, $ctx);
             $self->_search_in_archive($do_extract, $base_dir, $ctx, $file);
         }
     });
@@ -149,7 +153,7 @@ sub search {
     $self->_callback();
 }
 
-=head2 $probe->reset_matches()
+=head2 reset_matches()
 
 Reset the matched files list.
 
@@ -164,25 +168,9 @@ sub reset_matches {
     }
 }
 
-sub strip_dir {
-    my ($self, $base_dir, $path) = @_;
-
-    my $dir1 = $base_dir;
-    my $path1 = $path;
-
-    my $path_sep = '/';
-    $path_sep = '\\' if $^O eq 'MSWin32';
-
-    $dir1 .= $path_sep unless substr($dir1, -1, 1) eq $path_sep;
-    if (index($path1, $dir1) == 0) {
-        $path1 = substr($path1, length($dir1));
-    }
-    return $path1;
-}
-
 =head1 ACCESSORS
 
-=head2 $probe->working_dir([directory])
+=head2 working_dir([directory])
 
 Set or get the working directory where the temporary files will be created.
 
@@ -200,7 +188,7 @@ sub working_dir {
     return $self->{working_dir};
 }
 
-=head2 $show_extracting_output->working_dir([BOOL])
+=head2 show_extracting_output[BOOL])
 
 Enable or disable the output of command line archive tool.
 
@@ -245,7 +233,7 @@ sub _extract_matched {
         # matched files are unarchived
         # copy to working directory as-is
         # create absent local dir first
-        my $local_path = $self->strip_dir($base_dir, $file);
+        my $local_path = $self->_strip_dir($base_dir, $file);
         $dest = catfile($work_dir, $local_path);
 
         if ($do_extract) {
@@ -265,7 +253,7 @@ sub _match {
     my ($self, $do_extract, $base_dir, $ctx, $file) = @_;
 
     my $matches = 0;
-    my $part = $self->strip_dir(catdir($base_dir, $ctx), $file);
+    my $part = $self->_strip_dir(catdir($base_dir, $ctx), $file);
     my $patterns = $self->_search_pattern();
     foreach my $pat (keys(%$patterns)) {
         if ($part =~ /$pat/) {
@@ -680,6 +668,22 @@ sub _is_cmd_avail {
         $_CMD_LOC_FOR{$cmd} = "";
     }
     return $_CMD_LOC_FOR{$cmd} ? 1 : 0;
+}
+
+sub _strip_dir {
+    my ($self, $base_dir, $path) = @_;
+
+    my $dir1 = $base_dir;
+    my $path1 = $path;
+
+    my $path_sep = '/';
+    $path_sep = '\\' if $^O eq 'MSWin32';
+
+    $dir1 .= $path_sep unless substr($dir1, -1, 1) eq $path_sep;
+    if (index($path1, $dir1) == 0) {
+        $path1 = substr($path1, length($dir1));
+    }
+    return $path1;
 }
 
 sub _escape {

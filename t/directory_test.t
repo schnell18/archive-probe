@@ -35,7 +35,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{version} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{version} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{version} = '';
@@ -47,7 +47,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{target} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{target} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{target} = '';
@@ -62,7 +62,7 @@ SKIP: {
     is(
         $map->{target},
         $exp,
-        'abc file search in rar w/ directory'
+        'file search in rar'
     );
     my $a = catfile($tmpdir, 'rar_w_dir.rar__', 'leading_dir', 'target.abc');
     ok(-f $a, 'existence of target.abc');
@@ -72,7 +72,7 @@ SKIP: {
     is(
         $map->{version},
         $exp,
-        'abc file search in rar w/o directory'
+        'toplevel file search in rar'
     );
     my $b = catfile($tmpdir, 'rar_wo_dir.rar__', 'version.abc');
     ok(-f $b, 'existence of version.abc');
@@ -88,7 +88,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{xml} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{xml} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{xml} = '';
@@ -100,7 +100,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{jsp} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{jsp} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{jsp} = '';
@@ -115,7 +115,7 @@ SKIP: {
     is(
         $map->{xml},
         $exp,
-        'file search in zip w/ leading directory'
+        'file search in zip'
     );
     my $a = catfile($tmpdir, 'webapp.zip__', 'WEB-INF', 'config.xml');
     ok(-f $a, 'existence of config.xml');
@@ -125,11 +125,88 @@ SKIP: {
     is(
         $map->{jsp},
         $exp,
-        'file search in zip w/o leading directory'
+        'toplevel file search in zip'
     );
     my $b = catfile($tmpdir, 'webapp.zip__', 'index.jsp');
     ok(-f $b, 'existence of index.jsp');
 }
+
+SKIP: {
+    skip "tar is not installed", 4 unless $probe->_is_cmd_avail('tar');
+
+    $probe->working_dir($tmpdir);
+    $probe->add_pattern(
+        'manifest\.mf',
+        sub {
+            my ($pattern, $file_ref) = @_;
+
+            if (@$file_ref) {
+                $map->{mf} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
+            }
+            else {
+                $map->{mf} = '';
+            }
+    });
+    $probe->add_pattern(
+        '404\.jsp',
+        sub {
+            my ($pattern, $file_ref) = @_;
+
+            if (@$file_ref) {
+                $map->{404} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
+            }
+            else {
+                $map->{404} = '';
+            }
+    });
+    $probe->add_pattern(
+        'readme\.txt',
+        sub {
+            my ($pattern, $file_ref) = @_;
+
+            if (@$file_ref) {
+                $map->{txt} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
+            }
+            else {
+                $map->{txt} = '';
+            }
+    });
+    my $base_dir = catdir($test_data_dir, $test_data_no);
+    $probe->reset_matches();
+    $probe->search($base_dir, 1);
+
+    # verify that the manifest.mf file is found
+    my $exp = catfile('dir1', 'a.tgz__', 'META-INF', 'manifest.mf');
+    is(
+        $map->{mf},
+        $exp,
+        'file search in tgz under sub-directory'
+    );
+    my $a = catfile($tmpdir, 'dir1', 'a.tgz__', 'META-INF', 'manifest.mf');
+    ok(-f $a, 'existence of manifest.mf');
+
+    # verify that the 404.jsp file is found
+    $exp = catdir('dir1', 'a.tgz__', '404.jsp');
+    is(
+        $map->{404},
+        $exp,
+        'toplevel file search in tgz under sub-directory'
+    );
+    my $b = catfile($tmpdir, 'dir1', 'a.tgz__', '404.jsp');
+    ok(-f $b, 'existence of 404.jsp');
+
+    # verify that the readme.txt file is found
+    $exp = catfile('dir2', 'readme.txt');
+    is(
+        $map->{txt},
+        $exp,
+        'unarchived file search in sub-directory'
+    );
+    my $c = catfile($tmpdir, 'dir2', 'readme.txt');
+    ok(-f $c, 'existence of readme.txt');
+
+}
+
 # cleanup the temp directory to free disk space
 rmtree($tmpdir);
 

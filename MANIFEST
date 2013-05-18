@@ -9,6 +9,8 @@ t/deep_nest_tar_test.t
 t/deep_nest_all_test.t
 t/meta_char_in_filename_test.t
 t/search_archive_itself_test.t
+t/testdata/tc1/dir1/a.tgz
+t/testdata/tc1/dir2/readme.txt
 t/testdata/tc1/webapp.zip
 t/testdata/tc1/rar_w_dir.rar
 t/testdata/tc1/rar_wo_dir.rar

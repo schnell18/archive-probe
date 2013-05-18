@@ -36,7 +36,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{dot_d} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{dot_d} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{dot_d} = '';
@@ -48,7 +48,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{version} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{version} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{version} = '';
@@ -60,7 +60,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{hpp} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{hpp} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{hpp} = '';
@@ -72,7 +72,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{go} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{go} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{go} = '';

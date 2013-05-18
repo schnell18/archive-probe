@@ -38,7 +38,7 @@ SKIP: {
             my ($pattern, $file_ref) = @_;
 
             if (@$file_ref) {
-                $map->{abc} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+                $map->{abc} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
             }
             else {
                 $map->{abc} = '';
