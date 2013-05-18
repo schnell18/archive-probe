@@ -14,40 +14,60 @@ BEGIN {
 use strict;
 use Cwd;
 use File::Path;
-use File::Spec::Functions qw(rel2abs updir catdir);
+use File::Spec::Functions qw(rel2abs updir catdir catfile);
 use File::Temp qw(tempdir);
 use Test::More qw(no_plan);
 use TestBase;
 use Archive::Probe;
 
 my $test_data_dir = get_test_data_dir();
-my $test_data_no = 'tc2';
+my $test_data_no = 'tc1';
 my $map = {};
 my $tmpdir = tempdir('_arXXXXXXXX', DIR => File::Spec->tmpdir());
 my $probe = Archive::Probe->new();
 $probe->working_dir($tmpdir);
 $probe->add_pattern(
-    '\w+\.abc',
+    'version.abc',
     sub {
         my ($pattern, $file_ref) = @_;
 
         if (@$file_ref) {
-            $map->{dot_abc} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+            $map->{version} = $probe->strip_dir($tmpdir, $file_ref->[0]);
         }
         else {
-            $map->{dot_abc} = '';
+            $map->{version} = '';
+        }
+});
+$probe->add_pattern(
+    'target.abc',
+    sub {
+        my ($pattern, $file_ref) = @_;
+
+        if (@$file_ref) {
+            $map->{target} = $probe->strip_dir($tmpdir, $file_ref->[0]);
+        }
+        else {
+            $map->{target} = '';
         }
 });
 my $base_dir = catdir($test_data_dir, $test_data_no);
 $probe->reset_matches();
 $probe->search($base_dir, 1);
 
-# verify that the .abc file is found
-my $exp = catdir('rar_wo_dir.rar__', 'version.abc');
+# verify that the target.abc file is found
+my $exp = catfile('rar_w_dir.rar__', 'leading_dir', 'target.abc');
 is(
-    $map->{dot_abc},
+    $map->{target},
     $exp,
-    '.abc file search in rar w/o directory'
+    'abc file search in rar w/ directory'
+);
+
+# verify that the version.abc file is found
+$exp = catdir('rar_wo_dir.rar__', 'version.abc');
+is(
+    $map->{version},
+    $exp,
+    'abc file search in rar w/o directory'
 );
 
 # cleanup the temp directory to free disk space

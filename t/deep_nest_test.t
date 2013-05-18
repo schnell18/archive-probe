@@ -21,7 +21,7 @@ use TestBase;
 use Archive::Probe;
 
 my $test_data_dir = get_test_data_dir();
-my $test_data_no = 'tc1';
+my $test_data_no = 'tc2';
 my $map = {};
 my $tmpdir = tempdir('_arXXXXXXXX', DIR => File::Spec->tmpdir());
 my $probe = Archive::Probe->new();
@@ -43,12 +43,53 @@ $probe->reset_matches();
 $probe->search($base_dir, 1);
 
 # verify that the .abc file is found
-my $exp = catfile('rar_w_dir.rar__', 'leading_dir', 'target.abc');
+my $exp = catdir(
+    'a.rar__',
+    'b.tgz__',
+    'c.bz2__',
+    'd.zip__',
+    'e.7z__',
+    'version.abc'
+);
 is(
     $map->{dot_abc},
     $exp,
-    '.abc file search in rar w/ directory'
+    'file search in deep nested archive'
 );
+
+my $b = catfile(
+    $tmpdir,
+    'a.rar__',
+    'b.tgz'
+);
+ok(-f $b, 'existence of b.tgz');
+
+my $c = catfile(
+    $tmpdir,
+    'a.rar__',
+    'b.tgz__',
+    'c.bz2'
+);
+ok(-f $c, 'existence of c.bz2');
+
+my $d = catfile(
+    $tmpdir,
+    'a.rar__',
+    'b.tgz__',
+    'c.bz2__',
+    'd.zip'
+);
+ok(-f $d, 'existence of d.zip');
+
+my $e = catfile(
+    $tmpdir,
+    'a.rar__',
+    'b.tgz__',
+    'c.bz2__',
+    'd.zip__',
+    'e.7z'
+);
+ok(-f $e, 'existence of e.7z');
 
 # cleanup the temp directory to free disk space
 rmtree($tmpdir);

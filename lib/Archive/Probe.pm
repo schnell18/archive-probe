@@ -49,7 +49,9 @@ inspect the file content in custom code. It supports common archive types
 such as .tar, .tgz, .bz2, .rar, .zip, .7z. One archive file can contain
 archive file of same or other type. And level of nesting is unlimited.
 This module depends on unrar, 7za and tar which should be in PATH.
-The unrar is freeware and you get it from: http://www.rarlab.com/rar_add.htm
+The 7za is part of open source software 7zip. You can get it from:
+www.7-zip.org. The unrar is freeware which can be downloaded from:
+http://www.rarlab.com/rar_add.htm.
 
 =cut
 
@@ -595,7 +597,7 @@ sub _escape {
 sub _is_archive_file {
     my ($self, $file) = @_;
 
-    return $file =~ /\.(zip|7z|rar|tgz|tar|tar\.gz|tar\.Z)$/
+    return $file =~ /\.(zip|7z|rar|tgz|bz2|tar|tar\.gz|tar\.Z)$/
 }
 
 sub _property {
