@@ -5,6 +5,12 @@
 # Creation Date:   2013-05-13
 #
 #
+BEGIN {
+    if (-d 't') {
+        # running from the base directory
+        push @INC, 't';
+    }
+}
 use strict;
 use Cwd;
 use File::Path;

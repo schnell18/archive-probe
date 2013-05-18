@@ -8,10 +8,13 @@ package Archive::Probe;
 # Creation Date:   2013-05-06
 #
 use strict;
+use warnings;
 use Carp;
 use File::Path;
 use File::Copy;
 use File::Spec::Functions qw(catdir catfile devnull);
+
+our $VERSION = "0.8";
 
 =pod
 
@@ -229,7 +232,7 @@ sub _extract_matched {
                 $extract_dir
             );
             if (!$ret) {
-                warn "$file can not be extracted from $parent, ignored\n";
+                carp("$file can not be extracted from $parent, ignored\n");
                 return undef;
             }
         }
@@ -245,8 +248,9 @@ sub _extract_matched {
         if ($do_extract) {
             my $dir2 = catdir($work_dir, $self->_dir_name($local_path));
             mkpath($dir2) unless -d $dir2;
-            copy($file, $dest) or do {
-                warn "Can't copy file $file to $dest due to: $!\n";
+            my $ret = copy($file, $dest);
+            if (!$ret) {
+                carp("Can't copy file $file to $dest due to: $!\n");
                 return undef;
             }
         }
@@ -303,7 +307,11 @@ sub _walk_tree {
 
     foreach my $dir (@$dirs_ref) {
         if(-d $dir ) {
-            opendir(DIR, $dir) or warn "Can't read directory due to: $!";
+            my $ret = opendir(DIR, $dir);
+            if (!$ret) {
+                carp("Can't read directory due to: $!\n");
+                next;
+            }
 
             while(my $entry = readdir(DIR)) {
                 my $full_path = catfile($dir, $entry);
@@ -432,7 +440,12 @@ sub _peek_archive {
 
     my @col_indexes;
     my $file_list_begin = 0;
-    open(my $fh, "$cmd 2>&1 |") or warn "Can't run $cmd: $!\n";
+    my $ret = open(my $fh, "$cmd 2>&1 |");
+    if (!$ret) {
+        carp("Can't run $cmd due to: $!\n");
+        return;
+    }
+
     while(<$fh>) {
         chomp;
         my $line = $_;
@@ -478,7 +491,7 @@ sub _peek_archive {
                 );
             }
             else {
-                warn "$f can not be extracted from $file, ignored\n";
+                carp("$f can not be extracted from $file, ignored\n");
             }
         }
     }
