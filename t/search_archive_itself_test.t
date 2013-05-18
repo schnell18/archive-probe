@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# Test case to search rar files in deeply nested archive.
+# Test case to search archive itself in deeply nested archive.
 #
 # Author:          JustinZhang <fgz@qad.com>
 # Creation Date:   2013-05-13
