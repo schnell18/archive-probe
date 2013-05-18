@@ -667,6 +667,8 @@ This module is developed by Justin Zhang E<lt>fgz@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
+Copyright (C) 2013 by Justin Zhang
+
 This library is free software; you may redistribute and/or modify it
 under the same terms as Perl itself.
 
