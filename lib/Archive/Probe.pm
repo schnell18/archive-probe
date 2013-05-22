@@ -322,7 +322,7 @@ sub _walk_tree {
                 if(-f $full_path) {
                     $file_handler->($full_path);
                 }
-                elsif(d $full_path) {
+                elsif(-d $full_path) {
                     push @dirs, $full_path;
                 }
             }
