@@ -760,6 +760,12 @@ C<Archive::Probe> provides plumbing boiler code to search files in nested
 archive files. It does the heavy lifting to extract mininal files necessary
 to fulfill the inquiry.
 
+=head1 SOURCE AVAILABILITY
+
+This code is in Github
+
+    https://github.com/schnell18/archive-probe
+
 =head1 BUG REPORTS
 
 Please report bugs or other issues to E<lt>schnell18@rt.cpan.orgE<gt>.
