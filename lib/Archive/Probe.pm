@@ -322,7 +322,7 @@ sub _walk_tree {
                 if(-f $full_path) {
                     $file_handler->($full_path);
                 }
-                elsif(d $full_path) {
+                elsif(-d $full_path) {
                     push @dirs, $full_path;
                 }
             }
@@ -759,6 +759,12 @@ sub _dir_name {
 C<Archive::Probe> provides plumbing boiler code to search files in nested
 archive files. It does the heavy lifting to extract mininal files necessary
 to fulfill the inquiry.
+
+=head1 SOURCE AVAILABILITY
+
+This code is in Github
+
+    https://github.com/schnell18/archive-probe
 
 =head1 BUG REPORTS
 
