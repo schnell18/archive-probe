@@ -473,7 +473,7 @@ sub _peek_archive {
     ) = @_;
 
     my $tmpdir = $self->working_dir();
-    my $cmd = join(" ", "$list_cmd", qq{"$file"});
+    my $cmd = join(" ", $list_cmd, $self->_escape($file));
 
     my @col_indexes;
     my $file_list_begin = 0;
@@ -619,17 +619,14 @@ sub _extract_archive_file {
 sub _build_cmd {
     my ($self, $extract_cmd, $dir, $parent, $file) = @_;
 
-    my $quote     = q["];
     my $chdir_cmd = q[cd];
     if ($^O eq 'MSWin32') {
         $chdir_cmd = q[cd /d];
     }
     return sprintf(
-        "%s %s%s%s && %s %s %s",
+        "%s %s && %s %s %s",
         $chdir_cmd,
-        $quote,
-        $dir,
-        $quote,
+        $self->_escape($dir),
         $extract_cmd,
         $self->_escape($parent),
         $self->_escape($file)
@@ -690,13 +687,12 @@ sub _escape {
     my ($self, $str) = @_;
 
     my $ret = $str;
-    if ($ret =~ /'|"|\\|\s+|&/) {
-        if ($ret =~ /"/) {
-            $ret = qq['$ret'];
-        }
-        else {
-            $ret = qq["$ret"];
-        }
+    if ($^O ne 'MSWin32') {
+        $ret =~ s/([ ;<>\\\*\|`&\$!#\(\)\[\]\{\}:'"])/\\$1/g;
+    }
+    else {
+        $ret =~ s/([ &\(\)\{\}\^=;!'+,`~])/^$1/g;
+        $ret =~ s/(^\\|[\[\]])/\\$1/g;
     }
     return $ret;
 }

@@ -18,6 +18,7 @@ t/testdata/tc5/a.tar
 t/testdata/tc2/a.rar
 t/testdata/tc4/a.rar
 t/testdata/tc4/c.zip
+t/testdata/tc4/d.zip
 t/testdata/tc4/a.zip
 t/testdata/tc4/b.zip
 t/testdata/tc3/a.rar

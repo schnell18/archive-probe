@@ -78,6 +78,18 @@ SKIP: {
                 $map->{go} = '';
             }
     });
+    $probe->add_pattern(
+        'my.*\.txt',
+        sub {
+            my ($pattern, $file_ref) = @_;
+
+            if (@$file_ref) {
+                $map->{txt} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
+            }
+            else {
+                $map->{txt} = '';
+            }
+    });
     my $base_dir = catdir($test_data_dir, $test_data_no);
     $probe->reset_matches();
     $probe->search($base_dir, 1);
@@ -136,6 +148,18 @@ SKIP: {
         $map->{go},
         $exp,
         'space, single quote, backslash in file name test'
+    );
+
+    # verify that the "my ##&**|>>(1).txt" file is found
+    $exp = catfile(
+        'd.zip__',
+        'a{0} (0) [0]',
+        'my ##&**|>>(1).txt'
+    );
+    is(
+        $map->{txt},
+        $exp,
+        'comprehensive meta-char file name test'
     );
 }
 
