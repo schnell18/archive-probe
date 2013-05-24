@@ -33,7 +33,6 @@ SKIP: {
 
     my $test_data_no = 'tc6';
     $probe->working_dir($tmpdir);
-    $probe->add_pattern;
     $probe->add_pattern(
         'version\.abc',
         sub {
