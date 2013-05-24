@@ -21,14 +21,78 @@ use TestBase;
 use Archive::Probe;
 
 my $test_data_dir = get_test_data_dir();
-my $test_data_no = 'tc4';
 my $map = {};
 my $tmpdir = tempdir('_arXXXXXXXX', DIR => File::Spec->tmpdir());
 my $probe = Archive::Probe->new();
-SKIP: {
-    skip "unrar is not installed", 5 unless $probe->_is_cmd_avail('unrar');
-    skip "unzip is not installed", 5 unless $probe->_is_cmd_avail('unzip');
 
+# leading backslash test fails on Windows, skip it
+SKIP: {
+    skip "unrar is not installed", 2 unless $probe->_is_cmd_avail('unrar');
+    skip "7za is not installed", 2 unless $probe->_is_cmd_avail('7za');
+    skip "Skip backslash in filename test on Win", 2 if $^O eq 'MSWin32';
+
+    my $test_data_no = 'tc6';
+    $probe->working_dir($tmpdir);
+    $probe->add_pattern;
+    $probe->add_pattern(
+        'version\.abc',
+        sub {
+            my ($pattern, $file_ref) = @_;
+
+            if (@$file_ref) {
+                $map->{version} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
+            }
+            else {
+                $map->{version} = '';
+            }
+    });
+    $probe->add_pattern(
+        '\.go',
+        sub {
+            my ($pattern, $file_ref) = @_;
+
+            if (@$file_ref) {
+                $map->{go} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
+            }
+            else {
+                $map->{go} = '';
+            }
+    });
+    my $base_dir = catdir($test_data_dir, $test_data_no);
+    $probe->reset_matches();
+    $probe->search($base_dir, 1);
+
+    # verify that the version.abc file is found
+    my $exp = catfile(
+        'a.zip__',
+        '\\version.abc'
+    );
+    is(
+        $map->{version},
+        $exp,
+        'bashslash in file name test'
+    );
+
+    # verify that the "hell.go" file is found
+    $exp = catfile(
+        'c.zip__',
+        "\\Rock & Roll 't.zip__",
+        'go',
+        'hello.go'
+    );
+    is(
+        $map->{go},
+        $exp,
+        'space, single quote, backslash in file name test'
+    );
+
+}
+
+SKIP: {
+    skip "unrar is not installed", 8 unless $probe->_is_cmd_avail('unrar');
+    skip "unzip is not installed", 8 unless $probe->_is_cmd_avail('unzip');
+
+    my $test_data_no = 'tc4';
     $probe->working_dir($tmpdir);
     $probe->add_pattern(
         'abc.d$',
@@ -43,18 +107,6 @@ SKIP: {
             }
     });
     $probe->add_pattern(
-        'version\.abc',
-        sub {
-            my ($pattern, $file_ref) = @_;
-
-            if (@$file_ref) {
-                $map->{version} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
-            }
-            else {
-                $map->{version} = '';
-            }
-    });
-    $probe->add_pattern(
         '\.hpp$',
         sub {
             my ($pattern, $file_ref) = @_;
@@ -64,18 +116,6 @@ SKIP: {
             }
             else {
                 $map->{hpp} = '';
-            }
-    });
-    $probe->add_pattern(
-        '\.go',
-        sub {
-            my ($pattern, $file_ref) = @_;
-
-            if (@$file_ref) {
-                $map->{go} = $probe->_strip_dir($tmpdir, $file_ref->[0]);
-            }
-            else {
-                $map->{go} = '';
             }
     });
     $probe->add_pattern(
@@ -95,12 +135,12 @@ SKIP: {
     $probe->search($base_dir, 1);
 
     # verify abc's.zip exists
-    my $abc = catfile(
+    my $a = catfile(
         $tmpdir,
         'a.rar__',
         'abc\'s.zip'
     );
-    ok(-f $abc, 'single quote in file name zip existence test');
+    ok(-f $a, 'existence of matched file');
 
     # verify that the abc.d file is found
     my $exp = catfile(
@@ -113,17 +153,13 @@ SKIP: {
         $exp,
         'single quote in zip file name test'
     );
-
-    # verify that the version.abc file is found
-    $exp = catfile(
-        'a.zip__',
-        '\\version.abc'
+    $a = catfile(
+        $tmpdir,
+        'a.rar__',
+        'abc\'s.zip__',
+        'abc.d'
     );
-    is(
-        $map->{version},
-        $exp,
-        'bashslash in file name test'
-    );
+    ok(-f $a, 'existence of matched file');
 
     # verify that the "quick & dirty sort.hpp" file is found
     $exp = catfile(
@@ -136,19 +172,13 @@ SKIP: {
         $exp,
         'space in file name test'
     );
-
-    # verify that the "hell.go" file is found
-    $exp = catfile(
-        'c.zip__',
-        "\\Rock & Roll 't.zip__",
-        'go',
-        'hello.go'
+    $a = catfile(
+        $tmpdir,
+        'b.zip__',
+        'cpp',
+        'quick & dirty sort.hpp'
     );
-    is(
-        $map->{go},
-        $exp,
-        'space, single quote, backslash in file name test'
-    );
+    ok(-f $a, 'existence of matched file');
 
     # verify that the "my ##&**|>>(1).txt" file is found
     $exp = catfile(
@@ -161,6 +191,13 @@ SKIP: {
         $exp,
         'comprehensive meta-char file name test'
     );
+    $a = catfile(
+        $tmpdir,
+        'd.zip__',
+        'a{0} (0) [0]',
+        $^O ne 'MSWin32' ? 'my ##&**|>>(1).txt' : 'my ##&_____(1).txt'
+    );
+    ok(-f $a, 'existence of matched file');
 }
 
 # cleanup the temp directory to free disk space

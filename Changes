@@ -9,3 +9,8 @@ Changes for 0.81 7:57 PM 5/22/2013
 * Fixed directory test typo
 * Added new test case to cover directory test code
 * Minor fixes in POD
+
+Changes for 0.82 5:26 PM 5/24/2013
+============================================
+* Improved shell meta-char handling
+* Added new test case to cover meta-char handling code

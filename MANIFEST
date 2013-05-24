@@ -16,9 +16,9 @@ t/testdata/tc1/rar_w_dir.rar
 t/testdata/tc1/rar_wo_dir.rar
 t/testdata/tc5/a.tar
 t/testdata/tc2/a.rar
-t/testdata/tc4/a.rar
-t/testdata/tc4/c.zip
 t/testdata/tc4/d.zip
-t/testdata/tc4/a.zip
+t/testdata/tc4/a.rar
 t/testdata/tc4/b.zip
 t/testdata/tc3/a.rar
+t/testdata/tc6/a.zip
+t/testdata/tc6/c.zip
