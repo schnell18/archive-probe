@@ -1,0 +1,22 @@
+# Set default behaviour, in case users don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files we want to always be normalized and converted 
+# to native line endings on checkout.
+*.pm         text
+*.pl         text
+*.t          text
+Changes      text
+MANIFEST     text
+Makefile.PL  text
+README       text
+
+# Denote all files that are truly binary and should not be modified.
+*.7z  binary
+*.rar binary
+*.zip binary
+*.gz  binary
+*.Z   binary
+*.tgz binary
+*.bz2 binary
+*.tar binary
