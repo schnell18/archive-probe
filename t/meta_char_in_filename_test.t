@@ -200,6 +200,6 @@ SKIP: {
 }
 
 # cleanup the temp directory to free disk space
-rmtree($tmpdir);
+#rmtree($tmpdir);
 
 # vim: set ai nu nobk expandtab sw=4 ts=4:

@@ -16,7 +16,7 @@ use File::Path;
 use File::Spec::Functions qw(catdir catfile devnull path);
 use File::Temp qw(tempfile);
 
-our $VERSION = "0.82";
+our $VERSION = "0.83";
 
 my %_CMD_LOC_FOR = ();
 
@@ -568,15 +568,38 @@ sub _extract_archive_file {
             );
         }
         else {
-            # specify dummy password to make unzip fail fast
-            # instead of waiting for user input password when
-            # the zip file is password-protected
-            $cmd = $self->_build_cmd(
-                'unzip -P xxx -o',
-                $extract_dir,
-                $parent,
-                $file
-            );
+            if ($^O !~ /bsd$/i) {
+                # specify dummy password to make unzip fail fast
+                # instead of waiting for user input password when
+                # the zip file is password-protected
+                $cmd = $self->_build_cmd(
+                    'unzip -P xxx -o',
+                    $extract_dir,
+                    $parent,
+                    $file
+                );
+            }
+            else {
+                # FreeBSD and its derivatives do NOT support -P
+                if ($file !~ /[;<>\\\*\|`&\$!#\(\)\[\]\{\}:'"]/) {
+                    $cmd = $self->_build_cmd(
+                        'unzip -o',
+                        $extract_dir,
+                        $parent,
+                        $file
+                    );
+                }
+                else {
+                    # extract all files if the matched
+                    # file has shell meta-char in the name
+                    $cmd = $self->_build_cmd(
+                        'unzip -o',
+                        $extract_dir,
+                        $parent,
+                        ''
+                    );
+                }
+            }
         }
     }
     elsif ($parent =~ /\.zip$|\.7z$/) {
