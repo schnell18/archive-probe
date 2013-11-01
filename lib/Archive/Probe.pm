@@ -328,7 +328,7 @@ sub _walk_tree {
 sub _search_in_archive {
     my ($self, $do_extract, $base_dir, $ctx, $file) = @_;
 
-    if ($file =~ /\.zip$/) {
+    if ($file =~ /\.zip$|\.jar$|\.war$|\.ear$/) {
         if ($self->_is_cmd_avail('7za')) {
             $self->_peek_archive(
                 $do_extract,
@@ -555,7 +555,7 @@ sub _extract_archive_file {
 
     mkpath($extract_dir) unless -d $extract_dir;
     my $cmd = "";
-    if ($parent =~ /\.zip$/) {
+    if ($parent =~ /\.zip$|\.jar$|\.war$|\.ear$/) {
         if ($self->_is_cmd_avail('7za')) {
             # specify dummy password to make 7za fail fast
             # instead of waiting for user input password when
@@ -602,7 +602,7 @@ sub _extract_archive_file {
             }
         }
     }
-    elsif ($parent =~ /\.zip$|\.7z$/) {
+    elsif ($parent =~ /\.7z$/) {
         # specify dummy password to make 7za fail fast
         # instead of waiting for user input password when
         # the zip file is password-protected
@@ -737,7 +737,7 @@ sub _escape {
 sub _is_archive_file {
     my ($self, $file) = @_;
 
-    return $file =~ /\.(zip|7z|rar|tgz|bz2|tar|tar\.gz|tar\.Z)$/
+    return $file =~ /\.(zip|jar|war|ear|7z|rar|tgz|bz2|tar|tar\.gz|tar\.Z)$/
 }
 
 sub _property {

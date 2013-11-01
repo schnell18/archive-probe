@@ -20,3 +20,6 @@ README       text
 *.tgz binary
 *.bz2 binary
 *.tar binary
+*.jar binary
+*.war binary
+*.ear binary

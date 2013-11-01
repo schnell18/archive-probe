@@ -31,8 +31,13 @@ described in regular expression, and optionally to extract that file and
 inspect the file content in custom code. It supports common archive
 types such as .tar, .tgz, .bz2, .rar, .zip, .7z. One archive file can
 contain archive file of same or other type. And level of nesting is
-unlimited. This module depends on unrar, 7za and tar which should be in
-PATH. The unrar is freeware and you get it from [rarlab][1]
+unlimited. This module depends on unzip, unrar, 7za and tar which are
+assumed to be present in PATH. The 7za is part of 7zip utility.
+As far as .zip file is concerned, 7za performs better than unzip.
+The 7zip is open source software and you download and install it from
+[www.7-zip.org][1] or install the binary package p7zip with your package
+management software. The unrar is freeware and you get it from [rarlab][2].
+
 
 METHODS
 -------
@@ -86,7 +91,7 @@ Enable or disable the output of command line archive tool.
 HOW IT WORKS
 ------------
 
-"Archive::Probe" provides plumbing code to search files in nested
+"Archive::Probe" provides low level code to search files in nested
 archive files. It does the heavy lifting to extract mininal files
 necessary to fulfill the inquiry.
 
@@ -107,4 +112,5 @@ Copyright 2013 schnell18
 This library is free software; you may redistribute and/or modify it
 under the same terms as Perl itself.
 
-[1]: http://www.rarlab.com/rar_add.htm "RAR Lab download page"
+[1]: http://www.7-zip.org "7zip official site"
+[2]: http://www.rarlab.com/rar_add.htm "RAR Lab download page"
