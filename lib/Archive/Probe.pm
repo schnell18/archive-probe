@@ -225,7 +225,7 @@ sub _extract_matched {
             );
             if (!$ret) {
                 carp("$file can not be extracted from $parent, ignored\n");
-                return undef;
+                return;
             }
         }
         $dest = catfile($extract_dir, $file);
@@ -243,7 +243,7 @@ sub _extract_matched {
             my $ret = copy($file, $dest);
             if (!$ret) {
                 carp("Can't copy file $file to $dest due to: $!\n");
-                return undef;
+                return;
             }
         }
     }
@@ -342,12 +342,12 @@ sub _search_in_archive {
                 sub {
                     my ($entry, undef, undef, undef, undef, $file_pos) = @_;
                     my (undef, undef, $a, undef) = split(' ', $entry, 4);
-                    return undef if $a =~ /^D/;
+                    return if $a =~ /^D/;
                     if ($file_pos && $file_pos < length($entry)) {
                        my $f = substr($entry, $file_pos);
                        return $f;
                     }
-                    return undef;
+                    return;
                 }
             ); 
         }
@@ -383,12 +383,12 @@ sub _search_in_archive {
             sub {
                 my ($entry, undef, undef, undef, undef, $file_pos_7z) = @_;
                 my (undef, undef, $a, undef) = split(' ', $entry, 4);
-                return undef if $a =~ /^D/;
+                return if $a =~ /^D/;
                 if ($file_pos_7z && $file_pos_7z < length($entry)) {
                    my $f = substr($entry, $file_pos_7z);
                    return $f;
                 }
-                return undef;
+                return;
             }
         ); 
     }
@@ -490,7 +490,7 @@ sub _peek_archive {
         carp("Can't run $cmd due to: $!\n");
         return;
     }
-    $ret = open(my $fh, "<$lst_file");
+    $ret = open(my $fh, q{<}, "$lst_file");
     if (!$ret) {
         carp("Can't open file $lst_file due to: $!\n");
         return;
@@ -755,7 +755,7 @@ sub _property {
     return $self->{$attr};
 }
 
-sub _remove_property ($$) {
+sub _remove_property () {
     my ($self, $attr) = @_;
 
     $self->{$attr} = undef;
