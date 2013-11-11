@@ -755,7 +755,7 @@ sub _property {
     return $self->{$attr};
 }
 
-sub _remove_property () {
+sub _remove_property {
     my ($self, $attr) = @_;
 
     $self->{$attr} = undef;
