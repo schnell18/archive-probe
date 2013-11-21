@@ -16,7 +16,7 @@ use File::Path;
 use File::Spec::Functions qw(catdir catfile devnull path);
 use File::Temp qw(tempfile);
 
-our $VERSION = "0.83";
+our $VERSION = "0.84";
 
 my %_CMD_LOC_FOR = ();
 
