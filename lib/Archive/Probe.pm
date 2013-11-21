@@ -1,7 +1,7 @@
 package Archive::Probe;
 #
-# This class contains common logic to extract files matching given
-# pattern in a set of archive files 
+# This class searches and extracts files matching given pattern within
+# deeply nested archive files. Mixed archive types are supported.
 # Pre-requisite: unrar, 7za should be in PATH
 #                Get free unrar from: http://www.rarlab.com/rar_add.htm
 #                Get free 7za from: http://www.7-zip.org
@@ -11,12 +11,13 @@ package Archive::Probe;
 use strict;
 use warnings;
 use Carp;
+use File::Basename;
 use File::Copy;
 use File::Path;
 use File::Spec::Functions qw(catdir catfile devnull path);
 use File::Temp qw(tempfile);
 
-our $VERSION = "0.84";
+our $VERSION = "0.85";
 
 my %_CMD_LOC_FOR = ();
 
@@ -124,9 +125,10 @@ It requires two arguments:
 
 =over 4
 
-=item $base_dir
+=item $base
 
-This is the directory containing the archive file(s).
+This is the directory containing the archive file(s) or the archive file
+itself.
 
 =item $extract_matched
 
@@ -139,24 +141,109 @@ files based on their content not just by name.
 =cut
 
 sub search {
-    my ($self, $base_dir, $do_extract) = @_;
+    my ($self, $base, $do_extract) = @_;
     
-    my $dirs_ref = [$base_dir];
+    my $dirs_ref = [$base];
     $self->_walk_tree($dirs_ref, sub {
         my ($file) = @_;
 
         my $ctx = '';
         # Test if the file matches regestered pattern
-        $self->_match($do_extract, $base_dir, $ctx, $file);
+        $self->_match($do_extract, $base, $ctx, $file);
         if ($self->_is_archive_file($file)) {
-            my $ctx = $file . '__';
-            $ctx = $self->_strip_dir($base_dir, $ctx);
-            $self->_search_in_archive($do_extract, $base_dir, $ctx, $file);
+            my $ctx = $self->_strip_dir($base, $file) ;
+            $ctx .= '__' if $ctx ne '';
+            $self->_search_in_archive($do_extract, $base, $ctx, $file);
         }
     });
 
     # check search result & invoke callback
     $self->_callback();
+}
+
+=head2 extract(base, to_dir, recursive)
+
+Extract archive to given destination directory.
+It requires three arguments:
+
+=over 4
+
+=item $base
+
+This is the path to the archive file or the base archive directory.
+
+=item $to_dir
+
+The destination directory.
+
+=item $recursive
+
+Recursively extract all embedded archive files in the master archive if
+this parameter evaluates to true. It defaults to true.
+
+=item $flat
+
+If this parameter evaluates to true, C<Archive::Probe> extracts embedded
+archives under the same folder as their containing folder in recursive
+mode. Otherwise, it extracts the content of embedded archives into their
+own directories to avoid files with same name from different embedded
+archive being overwritten. Default is false.
+
+=back
+
+=cut
+
+sub extract {
+    my ($self, $base, $to_dir, $recursive, $flat) = @_;
+    
+    $recursive = 1 unless defined($recursive);
+    my @queue = ();
+    my %searched_for = ();
+    push @queue, $base;
+
+    while (my $path = shift @queue) {
+        if (-d $path) {
+            # search archives in this directory
+            my $ret = opendir(my $dh, $path);
+            if (!$ret) {
+                carp("Can't read directory due to: $!\n");
+                next;
+            }
+
+            while (my $entry = readdir($dh)) {
+                next if $entry eq '.' || $entry eq '..';
+                my $f = catfile($path, $entry);
+                if (-d $f ) {
+                    push @queue, $f;
+                }
+                elsif (-f $f && $self->_is_archive_file($f)) {
+                    push @queue, $f unless $searched_for{$f};
+                }
+            }
+            closedir($dh);
+        }
+        elsif ($self->_is_archive_file($path)) {
+            $searched_for{$path} = 1;
+            # extract archive and find any embedded archives
+            # if recursive extraction is required
+            my $dest_dir = $to_dir;
+            if (index($path, $to_dir) >= 0) {
+                if ($flat) {
+                    $dest_dir = dirname($path);
+                }
+                else {
+                    $dest_dir = catdir(
+                        dirname($path),
+                        basename($path) . "__"
+                    );
+                }
+            }
+            my $ret = $self->_extract_archive_file($path, "", $dest_dir);
+            if ($ret && $recursive) {
+                push @queue, $dest_dir;
+            }
+        }
+    }
 }
 
 =head2 reset_matches()
@@ -299,13 +386,13 @@ sub _callback {
 }
 
 sub _walk_tree {
-    my ($self, $dirs_ref, $file_handler) = @_;
+    my ($self, $bases_ref, $file_handler) = @_;
 
     my @dirs = ();
 
-    foreach my $dir (@$dirs_ref) {
-        if(-d $dir ) {
-            my $ret = opendir(DIR, $dir);
+    foreach my $base (@$bases_ref) {
+        if (-d $base) {
+            my $ret = opendir(DIR, $base);
             if (!$ret) {
                 carp("Can't read directory due to: $!\n");
                 next;
@@ -313,7 +400,7 @@ sub _walk_tree {
 
             while(my $entry = readdir(DIR)) {
                 next if $entry eq '.' || $entry eq '..';
-                my $full_path = catfile($dir, $entry);
+                my $full_path = catfile($base, $entry);
                 if(-f $full_path) {
                     $file_handler->($full_path);
                 }
@@ -322,6 +409,9 @@ sub _walk_tree {
                 }
             }
             closedir(DIR);
+        }
+        elsif (-f $base) {
+            $file_handler->($base);
         }
     }
 
@@ -847,4 +937,4 @@ under the same terms as Perl itself.
 
 =cut
 
-# vim: set ai nu nobk expandtab sw=4 ts=4:
+# vim: set ai nu nobk expandtab sw=4 ts=4 tw=72 :

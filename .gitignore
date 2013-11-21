@@ -1,2 +1,8 @@
 *.swp
 *.swo
+Makefile
+*~
+Archive-Probe-*
+MYMETA.*
+blib
+pm_to_blib

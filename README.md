@@ -1,9 +1,9 @@
-NAME
-----
+# NAME
 Archive::Probe - A generic library to search file within archive
 
-SYNOPSIS
---------
+# SYNOPSIS
+
+For searching archive:
 ````perl
     use Archive::Probe;
 
@@ -21,8 +21,16 @@ SYNOPSIS
     $probe->search($base_dir, 1);
 ````
 
-DESCRIPTION
------------
+For extracting archive:
+````perl
+    use Archive::Probe;
+
+    my $archive = '<path_to_your_achive>';
+    my $dest_dir = '<path_to_dest>';
+    $probe->extract($archive, $dest_dir, 1);
+````
+
+# DESCRIPTION
 
 Archive::Probe is a generic library to search file within archive.
 
@@ -41,74 +49,83 @@ package p7zip with your favorite package management software. The
 unrar is freeware and you get it from [rarlab][2].
 
 
-METHODS
--------
+# METHODS
 
-    $probe = Archive::Probe->new()
-
+## new
 Creates a new "Archive::Probe" object.
 
-    $probe->add_pattern(regex, coderef)
-
+## add_pattern($regex, $coderef)
 Register a file pattern to search with in the archive file(s) and the
 callback code to handle the matched files. The callback will be passed
 two arguments:
 
-$pattern
+### $pattern
     This is the pattern of the matched files.
 
-$file_ref
+### $file_ref
     This is the array reference to the files matched the pattern. The
     existence of the files is controlled by the second argument to the
     "search()" method.
 
-    $probe->search(base_dir, extract_matched)
-
-Search registered files under 'base_dir' and invoke the callback. It
+## search($base, $extract_matched)
+Search registered files under 'base' and invoke the callback. It
 requires two arguments:
-
-$base_dir
+## $base
     This is the directory containing the archive file(s).
 
-$extract_matched
+## $extract_matched
     Extract or copy the matched files to the working directory if this
     parameter evaluate to true.
 
-    $probe->reset_matches()
-
+## reset_matches()
 Reset the matched files list.
 
-ACCESSORS
----------
+## extract($base, $dest_dir, $recursive, $flat)
+Extract archive of various types to destination directory. It extracts
+ embedded archive to its own directory by default.
 
-    $probe->working_dir([directory])
+### $base
+This is the directory containing the archive file(s) or the archive
+file itself.
 
+### $dest_dir
+This is the directory to store extracted files from the archive.
+
+### $recursive
+This parameter defaults to true which means any embedded archives are
+extracted recursively by default. Specify 0 to disable extracting
+embedded archives recursively.
+
+### $flat
+If this parameter evaluates to true, it extracts embedded archives in
+the same directory as their containing directory. Otherwise, it extracts
+embedded archive to its own folder named after the archive with two
+underscore appended.
+
+# ACCESSORS
+
+## working_dir([directory])
 Set or get the working directory where the temporary files will be
 created.
 
-    $show_extracting_output->working_dir([BOOL])
-
+## show_extracting_output([BOOL])
 Enable or disable the output of command line archive tool.
 
-HOW IT WORKS
-------------
+# HOW IT WORKS
 
 "Archive::Probe" provides low level code to search files in nested
 archive files. It does the heavy lifting to extract mininal files
 necessary to fulfill the inquiry.
 
-BUG REPORTS
------------
+# BUG REPORTS
 
 Please report bugs or other issues to <schnell18@gmail.com>.
 
-AUTHOR
-------
+# AUTHOR
 
 This module is developed by Justin Zhang <schnell18@gmail.com>.
 
-COPYRIGHT
----------
+# COPYRIGHT
 
 Copyright 2013 schnell18
 This library is free software; you may redistribute and/or modify it

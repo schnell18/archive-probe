@@ -16,11 +16,11 @@ our @EXPORT = qw(get_test_data_dir);
 BEGIN {
     if (-d 'lib') {
         # running from the base directory
-        push @INC, 'lib';
+        unshift @INC, 'lib';
     }
     else {
         # running from t directory
-        push @INC, '../lib';
+        unshift @INC, '../lib';
     }
 }
 

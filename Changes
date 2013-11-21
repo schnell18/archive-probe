@@ -15,6 +15,10 @@ Changes for 0.82 5:26 PM 5/24/2013
 * Improved shell meta-char handling
 * Added new test case to cover meta-char handling code
 
-Changes for 0.83 7:47 PM 5/29/2013
+Changes for 0.84 7:47 PM 11/21/2013
 ============================================
-* Fixed extract failure if matched file has shell meta-char in name on BSD
+* Add Java archive support
+
+Changes for 0.85 16:35 PM 01/24/2014
+============================================
+* Add function to extract archive
