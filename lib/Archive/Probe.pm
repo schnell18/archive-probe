@@ -826,7 +826,7 @@ to fulfill the inquiry.
 
 =head1 SOURCE AVAILABILITY
 
-This code is in Github
+This code is hosted on Github
 
     https://github.com/schnell18/archive-probe
 
