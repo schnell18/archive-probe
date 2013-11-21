@@ -47,14 +47,19 @@ Archive::Probe - A generic library to search file within archive
 
 Archive::Probe is a generic library to search file within archive.
 
-It allows you to test the existence of a particular file, which can be
-described in regular expression, and optionally to extract that file and
-inspect the file content in custom code. It supports common archive types
-such as .tar, .tgz, .bz2, .rar, .zip, .7z. One archive file can contain
-archive file of same or other type. And level of nesting is unlimited.
-This module depends on unrar, 7za and tar which should be in PATH.
-The 7za is part of open source software 7zip. You can get it from:
-www.7-zip.org. The unrar is freeware which can be downloaded from:
+It facilitates searching of particular file by name or content inside
+deeply nested archive with mixed types. It supports common archive
+types such as .tar, .tgz, .bz2, .rar, .zip .7z and Java archive such
+as .jar, .war, .ear. If the target archive file contains another
+archive file of same or other type, this module extracts the embedded
+archive to fulfill the inquiry. The level of embedding is unlimited.
+This module depends on unzip, unrar, 7za and tar which are assumed to
+be present in PATH. The 7za is part of 7zip utility. It is preferred
+tool to deal with .zip archive it runs faster and handles meta
+character better than unzip. The 7zip is open source software and you
+download and install it from www.7-zip.org or install the binary
+package p7zip with your favorite package management software. The
+unrar is freeware which can be downloaded from
 http://www.rarlab.com/rar_add.htm.
 
 =cut
@@ -189,7 +194,7 @@ sub working_dir {
     return $self->{working_dir};
 }
 
-=head2 show_extracting_output[BOOL])
+=head2 show_extracting_output([BOOL])
 
 Enable or disable the output of command line archive tool.
 
