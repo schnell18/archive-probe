@@ -32,7 +32,7 @@ Archive::Probe - A generic library to search file within archive
     use Archive::Probe;
 
     my $tmpdir = '<temp_dir>';
-    my $base_dir = '<directory_of_archive_files>';
+    my $base = '<directory_or_archive_file>';
     my $probe = Archive::Probe->new();
     $probe->working_dir($tmpdir);
     $probe->add_pattern(
@@ -42,7 +42,7 @@ Archive::Probe - A generic library to search file within archive
 
             # do something with result files
     });
-    $probe->search($base_dir, 1);
+    $probe->search($base, 1);
 
 =head1 DESCRIPTION
 
@@ -143,19 +143,39 @@ files based on their content not just by name.
 sub search {
     my ($self, $base, $do_extract) = @_;
     
-    my $dirs_ref = [$base];
-    $self->_walk_tree($dirs_ref, sub {
-        my ($file) = @_;
+    my @queue = ();
+    push @queue, $base;
 
-        my $ctx = '';
-        # Test if the file matches regestered pattern
-        $self->_match($do_extract, $base, $ctx, $file);
-        if ($self->_is_archive_file($file)) {
-            my $ctx = $self->_strip_dir($base, $file) ;
-            $ctx .= '__' if $ctx ne '';
-            $self->_search_in_archive($do_extract, $base, $ctx, $file);
+    while (my $path = shift @queue) {
+        if (-d $path) {
+            opendir(my $dh, $path) or do {
+                carp("Can't read directory due to: $!\n");
+                next;
+            };
+
+            while (my $entry = readdir($dh)) {
+                next if $entry eq '.' || $entry eq '..';
+                push @queue, catfile($path, $entry);
+            }
+            closedir($dh);
         }
-    });
+        elsif (-f $path) {
+            my $new_base = $base;
+            $new_base = dirname($base) if $base eq $path;
+            # Test if the file matches regestered pattern
+            $self->_match($do_extract, $new_base, '', $path);
+            if ($self->_is_archive_file($path)) {
+                my $ctx = $self->_strip_dir($new_base, $path) ;
+                $ctx .= '__' if $ctx ne '';
+                $self->_search_in_archive(
+                    $do_extract,
+                    $new_base,
+                    $ctx,
+                    $path
+                );
+            }
+        }
+    }
 
     # check search result & invoke callback
     $self->_callback();
@@ -383,41 +403,6 @@ sub _callback {
         }
     }
     $self->_cleanup();
-}
-
-sub _walk_tree {
-    my ($self, $bases_ref, $file_handler) = @_;
-
-    my @dirs = ();
-
-    foreach my $base (@$bases_ref) {
-        if (-d $base) {
-            my $ret = opendir(DIR, $base);
-            if (!$ret) {
-                carp("Can't read directory due to: $!\n");
-                next;
-            }
-
-            while(my $entry = readdir(DIR)) {
-                next if $entry eq '.' || $entry eq '..';
-                my $full_path = catfile($base, $entry);
-                if(-f $full_path) {
-                    $file_handler->($full_path);
-                }
-                elsif(-d $full_path) {
-                    push @dirs, $full_path;
-                }
-            }
-            closedir(DIR);
-        }
-        elsif (-f $base) {
-            $file_handler->($base);
-        }
-    }
-
-    if(@dirs) {
-        $self->_walk_tree(\@dirs, $file_handler);
-    }
 }
 
 sub _search_in_archive {

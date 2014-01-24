@@ -8,7 +8,7 @@ For searching archive:
     use Archive::Probe;
 
     my $tmpdir = '<temp_dir>';
-    my $base_dir = '<directory_of_archive_files>';
+    my $base = '<directory_or_archive_file>';
     my $probe = Archive::Probe->new();
     $probe->working_dir($tmpdir);
     $probe->add_pattern(
@@ -18,7 +18,7 @@ For searching archive:
 
 	    # do something with result files
     });
-    $probe->search($base_dir, 1);
+    $probe->search($base, 1);
 ````
 
 For extracting archive:
@@ -46,12 +46,12 @@ tool to deal with .zip archive it runs faster and handles meta
 character better than unzip. The 7zip is open source software and you
 download and install it from [www.7-zip.org][1] or install the binary
 package p7zip with your favorite package management software. The
-unrar is freeware and you get it from [rarlab][2].
+unrar is freeware and you get it from [rarlab][2] or [atrpms][3].
 
 
 # METHODS
 
-## new
+## new()
 Creates a new "Archive::Probe" object.
 
 ## add_pattern($regex, $coderef)
@@ -133,3 +133,4 @@ under the same terms as Perl itself.
 
 [1]: http://www.7-zip.org "7zip official site"
 [2]: http://www.rarlab.com/rar_add.htm "RAR Lab download page"
+[3]: http://atrpms.net/ "ATrpms"

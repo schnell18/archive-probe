@@ -21,4 +21,5 @@ Changes for 0.84 7:47 PM 11/21/2013
 
 Changes for 0.85 16:35 PM 01/24/2014
 ============================================
+* Add direct search archive file support
 * Add function to extract archive

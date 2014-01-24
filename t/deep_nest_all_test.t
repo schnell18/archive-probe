@@ -25,6 +25,7 @@ my $test_data_no = 'tc2';
 my $map = {};
 my $tmpdir = tempdir('_arXXXXXXXX', DIR => File::Spec->tmpdir());
 my $probe = Archive::Probe->new();
+
 SKIP: {
     skip "unrar is not installed", 5 unless $probe->_is_cmd_avail('unrar');
     skip "unzip is not installed", 5 unless $probe->_is_cmd_avail('unzip');
@@ -44,9 +45,9 @@ SKIP: {
                 $map->{abc} = '';
             }
     });
-    my $base_dir = catdir($test_data_dir, $test_data_no);
+    my $base = catdir($test_data_dir, $test_data_no);
     $probe->reset_matches();
-    $probe->search($base_dir, 1);
+    $probe->search($base, 1);
 
     # verify that the .abc file is found
     my $exp = catdir(
@@ -96,9 +97,61 @@ SKIP: {
         'e.7z'
     );
     ok(-f $e, 'existence of e.7z');
-}
+    # cleanup the temp directory to free disk space
+    rmtree($tmpdir);
 
-# cleanup the temp directory to free disk space
-rmtree($tmpdir);
+    $map = {};
+    $tmpdir = tempdir('_arXXXXXXXX', DIR => File::Spec->tmpdir());
+
+    $probe->working_dir($tmpdir);
+    $base = catdir($test_data_dir, $test_data_no, "a.rar");
+    $probe->reset_matches();
+    $probe->search($base, 1);
+
+    # verify that the .abc file is found
+    is(
+        $map->{abc},
+        $exp,
+        'file search in deep nested archive(start w/ file)'
+    );
+
+    $b = catfile(
+        $tmpdir,
+        'a.rar__',
+        'b.tgz'
+    );
+
+    ok(-f $b, 'existence of b.tgz(start w/ file)');
+
+    $c = catfile(
+        $tmpdir,
+        'a.rar__',
+        'b.tgz__',
+        'c.bz2'
+    );
+    ok(-f $c, 'existence of c.bz2(start w/ file)');
+
+    $d = catfile(
+        $tmpdir,
+        'a.rar__',
+        'b.tgz__',
+        'c.bz2__',
+        'd.zip'
+    );
+    ok(-f $d, 'existence of d.zip(start w/ file)');
+
+    $e = catfile(
+        $tmpdir,
+        'a.rar__',
+        'b.tgz__',
+        'c.bz2__',
+        'd.zip__',
+        'e.7z'
+    );
+    ok(-f $e, 'existence of e.7z(start w/ file)');
+
+    # cleanup the temp directory to free disk space
+    rmtree($tmpdir);
+}
 
 # vim: set ai nu nobk expandtab sw=4 ts=4:
