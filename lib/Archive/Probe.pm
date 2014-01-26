@@ -44,24 +44,32 @@ Archive::Probe - A generic library to search file within archive
     });
     $probe->search($base, 1);
 
+    # or use it as generic archive extractor
+    use Archive::Probe;
+
+    my $archive = '<path_to_your_achive>';
+    my $dest_dir = '<path_to_dest>';
+    $probe->extract($archive, $dest_dir, 1);
+
 =head1 DESCRIPTION
 
-Archive::Probe is a generic library to search file within archive.
+Archive::Probe is a generic utility to search or extract archives.
 
 It facilitates searching of particular file by name or content inside
-deeply nested archive with mixed types. It supports common archive
-types such as .tar, .tgz, .bz2, .rar, .zip .7z and Java archive such
-as .jar, .war, .ear. If the target archive file contains another
-archive file of same or other type, this module extracts the embedded
-archive to fulfill the inquiry. The level of embedding is unlimited.
-This module depends on unzip, unrar, 7za and tar which are assumed to
-be present in PATH. The 7za is part of 7zip utility. It is preferred
-tool to deal with .zip archive it runs faster and handles meta
+deeply nested archive with mixed types. It can also extract embedded
+archive inside the master archive recursively. It is built on top of
+common archive tools such as 7zip, unrar, unzip and tar. It supports
+common archive types such as .tar, .tgz, .bz2, .rar, .zip .7z and Java
+archive such as .jar, .war, .ear. If the target archive file contains
+another archive file of same or other type, this module extracts the
+embedded archive to fulfill the inquiry. The level of embedding is
+unlimited. This module depends on unzip, unrar, 7za and tar which are
+assumed to be present in PATH. The 7za is part of 7zip utility. It is
+preferred tool to deal with .zip archive it runs faster and handles meta
 character better than unzip. The 7zip is open source software and you
-download and install it from www.7-zip.org or install the binary
-package p7zip with your favorite package management software. The
-unrar is freeware which can be downloaded from
-http://www.rarlab.com/rar_add.htm.
+download and install it from www.7-zip.org or install the binary package
+p7zip with your favorite package management software. The unrar is
+freeware which can be downloaded from http://www.rarlab.com/rar_add.htm.
 
 =cut
 
@@ -80,7 +88,7 @@ sub new {
     return bless {}, $class;
 }
 
-=head2 add_pattern(regex, coderef)
+=head2 add_pattern($pattern, $callback)
 
 Register a file pattern to search with in the archive file(s) and the
 callback code to handle the matched files. The callback will be passed
@@ -90,13 +98,14 @@ two arguments:
 
 =item $pattern
 
-This is the pattern of the matched files.
+This is the pattern of files to be searched.
 
-=item $file_ref
+=item $callback
 
-This is the array reference to the files matched the pattern. The files
-are extracted, hence exist, only if the second argument of the
-C<search()> method evaluates to true.
+This is the callback to examine the search result. The array reference
+to the files matched the pattern is passed to the callback. If you want
+to examine the content of the matched files, then you set the second
+argument of the C<search()> method to true.
 
 =back
 
@@ -118,9 +127,9 @@ sub add_pattern {
     $pattern_map->{$pattern} = [$callback];
 }
 
-=head2 search(base_dir, extract_matched)
+=head2 search($base, $extract_matched)
 
-Search registered files under 'base_dir' and invoke the callback.
+Search files of interest under 'base' and invoke the callback.
 It requires two arguments:
 
 =over 4
@@ -181,7 +190,7 @@ sub search {
     $self->_callback();
 }
 
-=head2 extract(base, to_dir, recursive)
+=head2 extract($base, $to_dir, $recursive, $flat)
 
 Extract archive to given destination directory.
 It requires three arguments:
@@ -283,7 +292,7 @@ sub reset_matches {
 
 =head1 ACCESSORS
 
-=head2 working_dir([directory])
+=head2 working_dir([$directory])
 
 Set or get the working directory where the temporary files will be created.
 
