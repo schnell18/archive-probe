@@ -57,8 +57,9 @@ SKIP: {
         $tmpdir,
        'dir.txt'
     );
-    $probe->extract($base, $tmpdir, 0, 1);
+    my $ret = $probe->extract($base, $tmpdir, 0, 1);
     ok(
+        $ret &&
         -f $dir_txt &&
         -f $b_tgz &&
         !-f $c_bz2 &&
@@ -96,9 +97,10 @@ SKIP: {
         $tmpdir,
        'dir.txt'
     );
-    $probe->extract($base, $tmpdir, 1, 1);
+    $ret = $probe->extract($base, $tmpdir, 1, 1);
     # verify that the dir.txt exists in top level folder
     ok(
+        $ret &&
         -f $dir_txt &&
         -f $b_tgz &&
         -f $c_bz2 &&
@@ -136,8 +138,9 @@ SKIP: {
        'dir.txt'
     );
     $base = catfile($test_data_dir, $test_data_no, "a.rar");
-    $probe->extract($base, $tmpdir, 0, 1);
+    $ret = $probe->extract($base, $tmpdir, 0, 1);
     ok(
+        $ret &&
         -f $dir_txt &&
         -f $b_tgz &&
         !-f $c_bz2 &&
@@ -175,9 +178,10 @@ SKIP: {
         $tmpdir,
        'dir.txt'
     );
-    $probe->extract($base, $tmpdir, 1, 1);
+    $ret = $probe->extract($base, $tmpdir, 1, 1);
     # verify that all files are extracted into the top level folder
     ok(
+        $ret &&
         -f $dir_txt &&
         -f $b_tgz &&
         -f $c_bz2 &&

@@ -218,6 +218,11 @@ mode. Otherwise, it extracts the content of embedded archives into their
 own directories to avoid files with same name from different embedded
 archive being overwritten. Default is false.
 
+=item return value
+
+The return value of this method evaluates to true if the archive is
+extacted successfully. Otherwise, it evaluates to false.
+
 =back
 
 =cut
@@ -271,8 +276,12 @@ sub extract {
             if ($ret && $recursive) {
                 push @queue, $dest_dir;
             }
+            elsif (!$ret) {
+                return 0;
+            }
         }
     }
+    return 1;
 }
 
 =head2 reset_matches()
@@ -916,7 +925,7 @@ This code is hosted on Github
 
 =head1 BUG REPORTS
 
-Please report bugs or other issues to E<lt>schnell18@rt.cpan.orgE<gt>.
+Please report bugs or other issues to E<lt>fgz@rt.cpan.orgE<gt>.
 
 =head1 AUTHOR
 

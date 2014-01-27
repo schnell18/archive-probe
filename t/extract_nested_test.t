@@ -41,8 +41,9 @@ SKIP: {
         $tmpdir,
        'dir.txt'
     );
-    $probe->extract($base, $tmpdir, 0);
+    my $ret = $probe->extract($base, $tmpdir, 0);
     ok(
+       $ret &&
         -f $dir_txt &&
         -f $b_tgz,
         'Non-recurisve extract deep nested archive(starts w/ dir)'
@@ -68,9 +69,10 @@ SKIP: {
         $tmpdir,
        'dir.txt'
     );
-    $probe->extract($base, $tmpdir, 1);
+    $ret = $probe->extract($base, $tmpdir, 1);
     # verify that the dir.txt exists in top level folder
     ok(
+       $ret &&
         -f $dir_txt,
         'Recurisve extract top level file in deep nested archive(starts w/ dir)'
     );
@@ -93,8 +95,9 @@ SKIP: {
        'dir.txt'
     );
     $base = catfile($test_data_dir, $test_data_no, "a.rar");
-    $probe->extract($base, $tmpdir, 0);
+    $ret = $probe->extract($base, $tmpdir, 0);
     ok(
+       $ret &&
         -f $dir_txt &&
         -f $b_tgz,
         'Non-recurisve extract deep nested archive(starts w/ file)'
@@ -120,9 +123,10 @@ SKIP: {
         $tmpdir,
        'dir.txt'
     );
-    $probe->extract($base, $tmpdir, 1);
+    $ret = $probe->extract($base, $tmpdir, 1);
     # verify that the dir.txt exists in top level folder
     ok(
+       $ret &&
         -f $dir_txt,
         'Recurisve extract top level file in deep nested archive(starts w/ file)'
     );
