@@ -23,3 +23,8 @@ Changes for 0.85 16:35 PM 01/24/2014
 ============================================
 * Add direct search archive file support
 * Add function to extract archive
+
+Changes for 0.86 21:57 PM 05/05/2014
+============================================
+* Bug fix for "Inappropriate ioctl for device"
+* Add return value for extract()

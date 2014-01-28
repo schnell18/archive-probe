@@ -17,7 +17,7 @@ use File::Path;
 use File::Spec::Functions qw(catdir catfile devnull path);
 use File::Temp qw(tempfile);
 
-our $VERSION = "0.85";
+our $VERSION = "0.86";
 
 my %_CMD_LOC_FOR = ();
 
@@ -585,7 +585,7 @@ sub _peek_archive {
     my $cmd_shell = "$cmd > $lst_file 2>&1";
     my $ret = system($cmd_shell);
     if ($ret != 0) {
-        carp("Can't run $cmd due to: $!\n");
+        carp("Can't run $cmd\n");
         return;
     }
     $ret = open(my $fh, q{<}, "$lst_file");
