@@ -1,5 +1,6 @@
 # NAME
 Archive::Probe - A generic library to search file within archive
+[![Build Status](https://travis-ci.org/schnell18/archive-probe.svg?branch=master)](https://travis-ci.org/schnell18/archive-probe)
 
 # SYNOPSIS
 
